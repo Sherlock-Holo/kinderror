@@ -5,6 +5,8 @@ authors = ["Sherlock Holo <sherlockya@gmail.com>"]
 description = "An io::Error style kind Error derive macro"
 keywords = ["error", "proc_macro", "procmacro"]
 edition = "2024"
+license = "MIT"
+repository = "https://github.com/Sherlock-Holo/kinderror"
 
 [lib]
 proc-macro = true
