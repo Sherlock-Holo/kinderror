@@ -120,3 +120,26 @@ fn test_default_display() {
     assert!(display_str.contains("ErrorA"));
     assert!(display_str.contains("default error"));
 }
+
+#[derive(KindError, Debug, Eq, PartialEq)]
+#[kind_error(source = "io::Error", name = "HasFieldError")]
+enum HasFieldErrorKind {
+    Field1 { text: String },
+    Field2,
+}
+
+#[test]
+fn test_has_field() {
+    let err = HasFieldError::new(
+        HasFieldErrorKind::Field1 {
+            text: "hello".to_string(),
+        },
+        io::Error::other("err"),
+    );
+    assert_eq!(
+        *err.kind(),
+        HasFieldErrorKind::Field1 {
+            text: "hello".to_string()
+        }
+    );
+}
