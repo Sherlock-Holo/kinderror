@@ -1,3 +1,5 @@
+//! Generate io::Error style error.
+
 extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
@@ -13,8 +15,9 @@ use syn::{
 ///
 /// ```rust
 /// use kinderror::KindError;
+/// use std::error::Error as _;
 ///
-/// #[derive(KindError, Debug)]
+/// #[derive(KindError, Debug, Eq, PartialEq)]
 /// #[kind_error(
 ///     source = "std::io::Error",
 ///     source_fn = true,
@@ -28,6 +31,10 @@ use syn::{
 ///     First,
 ///     Second,
 /// }
+///
+/// let err = Error::new(ErrorKind::First, std::io::Error::other("first error"));
+/// assert_eq!(*err.kind(), ErrorKind::First);
+/// assert!(err.source().is_some());
 /// ```
 ///
 /// # Attributes

@@ -6,8 +6,9 @@ An io::Error style kind Error derive macro
 
 ```rust
 use kinderror::KindError;
+use std::error::Error as _;
 
-#[derive(KindError, Debug)]
+#[derive(KindError, Debug, Eq, PartialEq)]
 #[kind_error(
     source = "std::io::Error",
     source_fn = true,
@@ -20,6 +21,12 @@ use kinderror::KindError;
 enum ErrorKind {
     First,
     Second,
+}
+
+fn main() {
+    let err = Error::new(ErrorKind::First, std::io::Error::other("first error"));
+    assert_eq!(*err.kind(), ErrorKind::First);
+    assert!(err.source().is_some());
 }
 ```
 
