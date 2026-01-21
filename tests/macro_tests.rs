@@ -184,3 +184,21 @@ fn test_origin_private() {
     let origin = err.origin();
     assert_eq!(origin.kind(), io::ErrorKind::Other);
 }
+
+#[derive(KindError, Debug)]
+#[kind_error(
+    source = "String",
+    source_fn = false,
+    name = "IntoKindError",
+    type_vis = "pub",
+    origin_fn_vis = ""
+)]
+enum IntoKind {
+    First,
+}
+
+#[test]
+fn test_into() {
+    let err = IntoKindError::new(IntoKind::First, "err");
+    assert_eq!(err.origin(), "err");
+}

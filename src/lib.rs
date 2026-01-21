@@ -232,8 +232,8 @@ fn kind_error_impl(input: DeriveInput) -> Result<TokenStream, syn::Error> {
         }
 
         impl #name {
-            #new_vis fn new(kind: #kind_type, source: #source_type) -> Self {
-                Self { kind, source }
+            #new_vis fn new(kind: #kind_type, source: impl ::core::convert::Into<#source_type>) -> Self {
+                Self { kind, source: source.into() }
             }
 
             #kind_fn_vis fn kind(&self) -> &#kind_type {
