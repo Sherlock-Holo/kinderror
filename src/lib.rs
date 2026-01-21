@@ -25,7 +25,8 @@ use syn::{
 ///     name = "Error",
 ///     type_vis = "pub",
 ///     kind_fn_vis = "pub",
-///     display = "hey, error kind: {kind:?}, source: {source}"
+///     display = "hey, error kind: {kind:?}, source: {source}",
+///     origin_fn_vis = "pub(crate)"
 /// )]
 /// enum ErrorKind {
 ///     First,
@@ -45,6 +46,7 @@ use syn::{
 /// - `name`: (default: "Error") name of the generated error struct
 /// - `type_vis`: (default: inherited) visibility of the struct
 /// - `kind_fn_vis`: (default: pub) visibility of the `kind()` method
+/// - `origin_fn_vis`: (default: pub) visibility of the `origin()` method
 /// - `display`: (default: "error kind: {kind:?}, source: {source:?}") custom Display format. Supports placeholders `{kind}` and `{source}`, users can freely specify format specifiers
 #[proc_macro_derive(KindError, attributes(kind_error))]
 pub fn kind_error(input: TokenStream) -> TokenStream {
@@ -59,6 +61,7 @@ struct KindErrorAttrs {
     name: Option<String>,
     type_vis: Option<Visibility>,
     kind_fn_vis: Option<Visibility>,
+    origin_fn_vis: Option<Visibility>,
     source_fn: bool,
     display: Option<String>,
 }
@@ -71,6 +74,7 @@ impl Parse for KindErrorAttrs {
             name: None,
             type_vis: None,
             kind_fn_vis: None,
+            origin_fn_vis: None,
             source_fn: true,
             display: None,
         };
@@ -99,6 +103,10 @@ impl Parse for KindErrorAttrs {
                 "kind_fn_vis" => {
                     let lit_str = input.parse::<syn::LitStr>()?;
                     attrs.kind_fn_vis = Some(syn::parse_str::<Visibility>(&lit_str.value())?);
+                }
+                "origin_fn_vis" => {
+                    let lit_str = input.parse::<syn::LitStr>()?;
+                    attrs.origin_fn_vis = Some(syn::parse_str::<Visibility>(&lit_str.value())?);
                 }
                 "source_fn" => {
                     let lit_bool = input.parse::<syn::LitBool>()?;
@@ -148,6 +156,7 @@ fn parse_kind_error_attrs(attrs: &[Attribute]) -> syn::Result<KindErrorAttrs> {
             name: None,
             type_vis: None,
             kind_fn_vis: None,
+            origin_fn_vis: None,
             source_fn: true,
             display: None,
         })
@@ -175,6 +184,9 @@ fn kind_error_impl(input: DeriveInput) -> Result<TokenStream, syn::Error> {
     let type_vis = attrs.type_vis.unwrap_or(Visibility::Inherited);
     let kind_fn_vis = attrs
         .kind_fn_vis
+        .unwrap_or(Visibility::Public(Default::default()));
+    let origin_fn_vis = attrs
+        .origin_fn_vis
         .unwrap_or(Visibility::Public(Default::default()));
     let name_str = attrs.name.as_deref().unwrap_or("Error");
     let name = Ident::new(name_str, input.ident.span());
@@ -226,6 +238,10 @@ fn kind_error_impl(input: DeriveInput) -> Result<TokenStream, syn::Error> {
 
             #kind_fn_vis fn kind(&self) -> &#kind_type {
                 &self.kind
+            }
+
+            #origin_fn_vis fn origin(&self) -> &#source_type {
+                &self.source
             }
         }
 

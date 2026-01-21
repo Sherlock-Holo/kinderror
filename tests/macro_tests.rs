@@ -143,3 +143,44 @@ fn test_has_field() {
         }
     );
 }
+
+// Test origin() method with origin_fn_vis
+#[derive(KindError, Debug)]
+#[kind_error(
+    source = "io::Error",
+    name = "OriginTestError",
+    type_vis = "pub",
+    origin_fn_vis = "pub"
+)]
+enum OriginTestKind {
+    TestKind,
+}
+
+#[test]
+fn test_origin() {
+    let source_error = io::Error::other("original error");
+    let err = OriginTestError::new(OriginTestKind::TestKind, source_error);
+    let origin = err.origin();
+    assert_eq!(origin.kind(), io::ErrorKind::Other);
+}
+
+// Test origin() method with origin_fn_vis as private
+#[derive(KindError, Debug)]
+#[kind_error(
+    source = "io::Error",
+    name = "OriginPrivateError",
+    type_vis = "pub",
+    origin_fn_vis = ""
+)]
+enum OriginPrivateKind {
+    PrivateKind,
+}
+
+#[test]
+fn test_origin_private() {
+    let source_error = io::Error::other("private origin error");
+    let err = OriginPrivateError::new(OriginPrivateKind::PrivateKind, source_error);
+    // Can access the origin through the private method via the test module
+    let origin = err.origin();
+    assert_eq!(origin.kind(), io::ErrorKind::Other);
+}
